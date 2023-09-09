@@ -1,14 +1,33 @@
-import React, { Suspense, lazy } from 'react';
-import Loader from 'components/Loader';
+import React, {useEffect} from 'react';
 
-const Routes = lazy(() => import('./routes'));
+const App = () => {
+    useEffect(() => {
+        const eventSource = new EventSource("http://localhost:8080/sse");
 
-function App() {
-  return (
-    <Suspense fallback={<Loader />}>
-      <Routes/>
-    </Suspense>
-  );
-}
+        eventSource.onmessage = (event) => {
+            console.log("New message: ", event.data);
+        };
+
+        eventSource.addEventListener("message", (event) => {
+            console.log("Message event: ", event.data);
+        });
+
+        eventSource.onerror = (error) => {
+            console.log("EventSource failed:", error);
+            console.log("Ready State:", eventSource.readyState);
+            eventSource.close();
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, []);
+
+    return (
+        <div className="App">
+            <h1>SSE with React and Spring Boot</h1>
+        </div>
+    );
+};
 
 export default App;
